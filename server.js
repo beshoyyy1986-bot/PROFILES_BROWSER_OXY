@@ -6,12 +6,28 @@ const FILE=path.join(DIR,'store.json');
 const DEF={slots:[{},{},{}],scripts:[],links:[['Facebook','https://www.facebook.com'],['Meta Business','https://business.facebook.com'],['Ads Manager','https://adsmanager.facebook.com'],['Instagram','https://www.instagram.com'],['WhatsApp Web','https://web.whatsapp.com'],['فحص الـ IP','https://ipinfo.io']]};
 let store={...DEF,...(()=>{try{return JSON.parse(fs.readFileSync(FILE,'utf8'))}catch{return{}}})()};
 const save=()=>{try{fs.writeFileSync(FILE,JSON.stringify(store,null,1))}catch(e){console.error('save',e.message)}};
-const CC={};'EG|مصر|Africa/Cairo|ar-EG,ar,en-US,en;SA|السعودية|Asia/Riyadh|ar-SA,ar,en-US,en;AE|الإمارات|Asia/Dubai|ar-AE,ar,en-US,en;KW|الكويت|Asia/Kuwait|ar-KW,ar,en-US,en;QA|قطر|Asia/Qatar|ar-QA,ar,en-US,en;BH|البحرين|Asia/Bahrain|ar-BH,ar,en-US,en;OM|عمان|Asia/Muscat|ar-OM,ar,en-US,en;JO|الأردن|Asia/Amman|ar-JO,ar,en-US,en;LB|لبنان|Asia/Beirut|ar-LB,ar,en-US,en;IQ|العراق|Asia/Baghdad|ar-IQ,ar,en-US,en;MA|المغرب|Africa/Casablanca|ar-MA,ar,fr-FR,fr,en-US,en;DZ|الجزائر|Africa/Algiers|ar-DZ,ar,fr-FR,fr,en-US,en;TN|تونس|Africa/Tunis|ar-TN,ar,fr-FR,fr,en-US,en;LY|ليبيا|Africa/Tripoli|ar-LY,ar,en-US,en;SD|السودان|Africa/Khartoum|ar-SD,ar,en-US,en;TR|تركيا|Europe/Istanbul|tr-TR,tr,en-US,en;GB|بريطانيا|Europe/London|en-GB,en;DE|ألمانيا|Europe/Berlin|de-DE,de,en-US,en;FR|فرنسا|Europe/Paris|fr-FR,fr,en-US,en;ES|إسبانيا|Europe/Madrid|es-ES,es,en-US,en;IT|إيطاليا|Europe/Rome|it-IT,it,en-US,en;NL|هولندا|Europe/Amsterdam|nl-NL,nl,en-US,en;US|أمريكا|America/New_York|en-US,en;CA|كندا|America/Toronto|en-CA,en,fr-CA,fr;BR|البرازيل|America/Sao_Paulo|pt-BR,pt,en-US,en;MX|المكسيك|America/Mexico_City|es-MX,es,en-US,en;IN|الهند|Asia/Kolkata|en-IN,en,hi;PK|باكستان|Asia/Karachi|en-PK,en,ur;ID|إندونيسيا|Asia/Jakarta|id-ID,id,en-US,en;JP|اليابان|Asia/Tokyo|ja-JP,ja,en-US,en;AU|أستراليا|Australia/Sydney|en-AU,en;NG|نيجيريا|Africa/Lagos|en-NG,en;ZA|جنوب أفريقيا|Africa/Johannesburg|en-ZA,en'.split(';').forEach(s=>{const[a,n,t,l]=s.split('|');CC[a]={n,t,l}});
-const A=(m,av,w,h,d)=>({m,av,w,h,d,p:'Linux armv81'});
-const DEV={'Pixel 8':A('Pixel 8',14,412,915,2.625),'Galaxy S23':A('SM-S911B',14,360,780,3),'Galaxy A54':A('SM-A546E',14,360,800,3),'Redmi Note 12':A('23021RAAEG',13,393,873,2.75),'OnePlus 11':A('CPH2449',14,412,919,3.5)};
-const WEST='US CA GB DE FR ES IT NL AU JP'.split(' '),P_W=['Pixel 8','Galaxy S23','OnePlus 11'],P_O=['Galaxy A54','Redmi Note 12','Galaxy S23','Pixel 8'];
+// ── الدول: نفس COUNTRY_DB في mo.py (الكود | الاسم | التوقيت | اللغات) + اختيار مخصص
+const CC={};'EG|مصر|Africa/Cairo|ar-EG,ar,en-US,en;SA|السعودية|Asia/Riyadh|ar-SA,ar,en-US,en;AE|الإمارات|Asia/Dubai|ar-AE,ar,en-US,en;KW|الكويت|Asia/Kuwait|ar-KW,ar,en-US,en;QA|قطر|Asia/Qatar|ar-QA,ar,en-US,en;BH|البحرين|Asia/Bahrain|ar-BH,ar,en-US,en;OM|عمان|Asia/Muscat|ar-OM,ar,en-US,en;JO|الأردن|Asia/Amman|ar-JO,ar,en-US,en;LB|لبنان|Asia/Beirut|ar-LB,ar,en-US,en;PH|الفلبين|Asia/Manila|en-PH,en,fil;KZ|كازاخستان|Asia/Almaty|ru-KZ,ru,kk,en-US,en;UZ|أوزبكستان|Asia/Tashkent|uz-UZ,uz,ru,en-US,en;AZ|أذربيجان|Asia/Baku|az-AZ,az,en-US,en;AM|أرمينيا|Asia/Yerevan|hy-AM,hy,en-US,en;GE|جورجيا|Asia/Tbilisi|ka-GE,ka,en-US,en;AU|أستراليا|Australia/Sydney|en-AU,en;NZ|نيوزيلندا|Pacific/Auckland|en-NZ,en;MM|ميانمار|Asia/Yangon|my-MM,my,en-US,en;KH|كمبوديا|Asia/Phnom_Penh|km-KH,km,en-US,en;AF|أفغانستان|Asia/Kabul|fa-AF,fa,en-US,en'.split(';').forEach(s=>{const[a,n,t,l]=s.split('|');CC[a]={n,t,l}});
+// دولة مخصصة (مش في القائمة): لغة/توقيت احتياطي — والتوقيت الفعلي بيتحدد من موقع الـ IP وقت التشغيل
+const XL={};'US|America/New_York|en-US,en;GB|Europe/London|en-GB,en;CA|America/Toronto|en-CA,en,fr-CA,fr;DE|Europe/Berlin|de-DE,de,en-US,en;FR|Europe/Paris|fr-FR,fr,en-US,en;ES|Europe/Madrid|es-ES,es,en-US,en;IT|Europe/Rome|it-IT,it,en-US,en;NL|Europe/Amsterdam|nl-NL,nl,en-US,en;PT|Europe/Lisbon|pt-PT,pt,en-US,en;BR|America/Sao_Paulo|pt-BR,pt,en-US,en;MX|America/Mexico_City|es-MX,es,en-US,en;BO|America/La_Paz|es-BO,es,en-US,en;CO|America/Bogota|es-CO,es,en-US,en;AR|America/Argentina/Buenos_Aires|es-AR,es,en-US,en;CL|America/Santiago|es-CL,es,en-US,en;PE|America/Lima|es-PE,es,en-US,en;EC|America/Guayaquil|es-EC,es,en-US,en;VE|America/Caracas|es-VE,es,en-US,en;TR|Europe/Istanbul|tr-TR,tr,en-US,en;IN|Asia/Kolkata|en-IN,en,hi;PK|Asia/Karachi|en-PK,en,ur;BD|Asia/Dhaka|bn-BD,bn,en-US,en;ID|Asia/Jakarta|id-ID,id,en-US,en;MY|Asia/Kuala_Lumpur|ms-MY,ms,en-US,en;TH|Asia/Bangkok|th-TH,th,en-US,en;VN|Asia/Ho_Chi_Minh|vi-VN,vi,en-US,en;JP|Asia/Tokyo|ja-JP,ja,en-US,en;KR|Asia/Seoul|ko-KR,ko,en-US,en;RU|Europe/Moscow|ru-RU,ru,en-US,en;UA|Europe/Kyiv|uk-UA,uk,ru,en-US,en;PL|Europe/Warsaw|pl-PL,pl,en-US,en;MA|Africa/Casablanca|ar-MA,ar,fr-FR,fr,en-US,en;DZ|Africa/Algiers|ar-DZ,ar,fr-FR,fr,en-US,en;TN|Africa/Tunis|ar-TN,ar,fr-FR,fr,en-US,en;LY|Africa/Tripoli|ar-LY,ar,en-US,en;SD|Africa/Khartoum|ar-SD,ar,en-US,en;IQ|Asia/Baghdad|ar-IQ,ar,en-US,en;NG|Africa/Lagos|en-NG,en;ZA|Africa/Johannesburg|en-ZA,en;KE|Africa/Nairobi|en-KE,en,sw'.split(';').forEach(s=>{const[a,t,l]=s.split('|');XL[a]={t,l}});
+const US_STATE_TZ={california:'America/Los_Angeles',washington:'America/Los_Angeles',oregon:'America/Los_Angeles',nevada:'America/Los_Angeles',arizona:'America/Phoenix',utah:'America/Denver',colorado:'America/Denver',newmexico:'America/Denver',montana:'America/Denver',idaho:'America/Boise',texas:'America/Chicago',illinois:'America/Chicago',minnesota:'America/Chicago',wisconsin:'America/Chicago',missouri:'America/Chicago',oklahoma:'America/Chicago',louisiana:'America/Chicago',alabama:'America/Chicago',tennessee:'America/Chicago',iowa:'America/Chicago',kansas:'America/Chicago',newyork:'America/New_York',florida:'America/New_York',georgia:'America/New_York',virginia:'America/New_York',ohio:'America/New_York',michigan:'America/Detroit',pennsylvania:'America/New_York',massachusetts:'America/New_York',newjersey:'America/New_York',alaska:'America/Anchorage',hawaii:'Pacific/Honolulu'};
+const CC_RE=/^[A-Za-z]{2}(_[A-Za-z_]{2,28})?$/;
+function cinfo(raw){const code=String(raw||'').toUpperCase().slice(0,2),k=CC[code];
+ if(k){const d={...k,known:true};if(code==='US'&&raw.includes('_'))d.t=US_STATE_TZ[raw.split('_').slice(1).join('').toLowerCase()]||d.t;return d}
+ const x=XL[code]||{};const d={n:code,t:x.t||'',l:x.l||'en-US,en',known:false};
+ if(code==='US'&&raw.includes('_'))d.t=US_STATE_TZ[raw.split('_').slice(1).join('').toLowerCase()]||d.t;return d}
+// ── الأجهزة: نفس PRESETS في mo.py
+const A=(m,av,w,h,d)=>({m,av,w,h,d,p:'Linux armv81',and:true});
+const DEV={'Pixel 8':A('Pixel 8',14,412,915,2.625),'Pixel 7':A('Pixel 7',14,412,915,2.625),'Galaxy S23':A('SM-S911B',14,360,780,3),'Galaxy S24':A('SM-S921B',14,360,780,3),'Galaxy A54':A('SM-A546E',14,360,800,3),'Galaxy A34':A('SM-A346E',14,360,800,3),'Redmi Note 12':A('23021RAAEG',13,393,873,2.75),'Xiaomi 13':A('2211133G',14,393,873,2.75),'OnePlus 11':A('CPH2449',14,412,919,3.5),'Realme 11':A('RMX3636',14,360,800,3),
+ 'iPhone 15':{m:'',av:'',w:393,h:852,d:3,p:'iPhone',and:false,ua:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1'}};
+const WEST=new Set('US CA GB IE DE FR ES IT PT NL BE CH AT SE NO DK FI AU NZ JP KR SG IL IS HK TW'.split(' ')),P_W=['Pixel 8','Pixel 7','Galaxy S23','Galaxy S24','OnePlus 11'],P_O=['Galaxy A54','Galaxy A34','Redmi Note 12','Xiaomi 13','Realme 11','Galaxy S23','Pixel 7'];
 const hash=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
-const pickDev=(sid,cc)=>{const p=WEST.includes(cc)?P_W:P_O;return p[hash(sid)%p.length]};
+const pickDev=(sid,cc)=>{const p=WEST.has(cc)?P_W:P_O;return p[hash(sid)%p.length]};
+const validTz=t=>{try{new Intl.DateTimeFormat('en',{timeZone:t});return true}catch{return false}};
+// ── يوزر البروكسي: نفس proxy_username في mo.py ({user}-cc-{cc} + sessid ثابت)
+const proxyUser=(cc,sid)=>{if(E.PROXY_MODE==='plain')return E.PROXY_USER;const t=E.PROXY_TEMPLATE||'{user}-cc-{cc}';
+ let u=t.split('{user}').join(E.PROXY_USER).split('{cc}').join(cc).split('{sid}').join(sid);
+ if(E.PROXY_STICKY!=='0'&&!u.includes('sessid'))u+=`-sessid-${sid}-sesstime-${+E.PROXY_SESSTIME||30}`;return u};
 // ── تحويل الكود إلى سكربت (نفس منطق bookmarklet/wrapped في الأداة القديمة)
 const TPL=`(()=>{const __id=__RID__;__GUARD__
 const __log=window.console.log.bind(window.console);const __send=(t,v)=>{try{__log("__MP__"+JSON.stringify({id:__id,t,v}))}catch(e){}};
@@ -38,46 +54,72 @@ function parseCookies(t){t=(t||'').trim().replace(/^\uFEFF/,'');if(!t)return[];
  if(/\t/.test(t)||/^#\s*Netscape/mi.test(t)){const out=[];for(let l of t.split(/\r?\n/)){let h=false;if(l.startsWith('#HttpOnly_')){h=true;l=l.slice(10)}else if(l.trim().startsWith('#')||!l.trim())continue;const p=l.split('\t');if(p.length>=7)out.push(mkc({domain:p[0],path:p[2],secure:p[3].toUpperCase()==='TRUE',expires:cexp(p[4]),name:p[5],value:p[6],httpOnly:h}))}if(out.length)return out}
  return t.replace(/^cookie\s*:\s*/i,'').split(/[;\n\r]+/).filter(p=>p.includes('=')).map(p=>{const k=p.indexOf('=');return mkc({name:p.slice(0,k),value:p.slice(k+1).trim()})}).filter(c=>c.name)}
 const cb=async(p,body,m='POST')=>{if(!KEY)throw new Error('CLOUDBROWSER_API_KEY مش متضبط على السيرفر');
- const r=await fetch(API+p,{method:m,headers:{Authorization:'Bearer '+KEY,'Content-Type':'application/json'},body:m==='GET'?undefined:JSON.stringify(body)});
- const j=await r.json().catch(()=>({}));const s=r.ok?(j.status||200):r.status;
- if(s!==200)throw new Error(({401:'التوكن غلط',402:'مفيش اشتراك فعّال',403:'الوحدات خلصت',404:'وصلت أقصى عدد متصفحات متوازية'})[s]||`خطأ من الخدمة (${s})`);return j};
+ let r;try{r=await fetch(API+p,{method:m,headers:{Authorization:'Bearer '+KEY,'Content-Type':'application/json'},body:m==='GET'?undefined:JSON.stringify(body),signal:AbortSignal.timeout(60000)})}
+ catch(e){throw new Error(e.name==='TimeoutError'?'خدمة CloudBrowser مردتش خلال 60 ثانية':'مقدرتش أوصل لـ CloudBrowser: '+(e.cause&&e.cause.code||e.message))}
+ const raw=await r.text(),j=(()=>{try{return JSON.parse(raw)}catch{return{}}})();const s=r.ok?(j.status||200):r.status;
+ if(s!==200)throw new Error(({401:'التوكن غلط',402:'مفيش اشتراك فعّال',403:'الوحدات خلصت',404:'وصلت أقصى عدد متصفحات متوازية'})[s]||`خطأ من الخدمة (${s}) ${(j.message||j.title||j.error||raw||'').toString().slice(0,160)}`);return j};
 const norm=u=>{u=(u||'').trim()||'https://ipinfo.io';return/^[a-z][\w+.-]*:\/\//i.test(u)?u:'https://'+u};
 const KC={Backspace:8,Tab:9,Enter:13,Escape:27,ArrowLeft:37,ArrowUp:38,ArrowRight:39,ArrowDown:40,Delete:46};
 class Slot{
  constructor(i){this.i=i;this.clients=new Set();this.st='idle';this.n=0;this.pend=new Map()}
- meta(){const s=store.slots[this.i]||{};return{i:this.i,st:this.st,err:this.err,url:this.url,name:s.name,country:s.country,device:this.devName||s.device,w:this.dev&&this.dev.w,h:this.dev&&this.dev.h}}
+ meta(){const s=store.slots[this.i]||{};return{i:this.i,st:this.st,err:this.err,stp:this.stp,url:this.url,name:s.name,country:s.country,device:this.devName||s.device,w:this.dev&&this.dev.w,h:this.dev&&this.dev.h,geo:this.geo}}
  push(o){const m=JSON.stringify(o);this.clients.forEach(c=>c.readyState===1&&c.send(m))}
  set(st,err){this.st=st;this.err=err;this.push({t:'state',s:this.meta()})}
  send(method,params={},sid=this.sid){return new Promise((ok,no)=>{if(!this.ws||this.ws.readyState!==1)return no(new Error('المتصفح مش متصل'));const id=++this.n;this.pend.set(id,{ok,no});this.ws.send(JSON.stringify({id,method,params,sessionId:sid}));setTimeout(()=>this.pend.delete(id)&&no(new Error('انتهت المهلة: '+method)),20000)})}
+ step(t){this.stp=t;this.push({t:'state',s:this.meta()})}
+ async ipGeo(L){for(const u of ['https://ipinfo.io/json','https://ipapi.co/json/']){
+   try{const r=await this.send('Runtime.evaluate',{expression:`fetch(${JSON.stringify(u)},{cache:'no-store'}).then(r=>r.json()).then(j=>({ip:j.ip,cc:j.country||j.country_code,tz:j.timezone}))`,awaitPromise:true,returnByValue:true,timeout:12000});
+    const v=r.result&&r.result.value;if(v&&v.tz&&validTz(v.tz))return v;L('ip lookup فاضي من',u)}catch(e){L('ip lookup فشل',u,e.message)}}return null}
  async start(c){
+  const t0=Date.now(),L=(...a)=>console.log(`[slot ${this.i}] +${((Date.now()-t0)/1000).toFixed(1)}s`,...a);
   await this.stop(true);const sid=c.sid||Math.random().toString(36).slice(2,12);
-  const cc=CC[c.country]?c.country:'EG',info=CC[cc],dn=DEV[c.device]?c.device:pickDev(sid,cc),dev=DEV[dn];
-  store.slots[this.i]={name:c.name||'Profile '+(this.i+1),country:cc,device:c.device||'auto',url:c.url,sid};save();
-  this.dev=dev;this.devName=dn;this.url=c.url;this.last=null;this.set('starting');
+  const raw=String(c.country||'EG').trim(),cc2=raw.toUpperCase().slice(0,2),pcc=raw.length>2?raw:raw.toUpperCase(),info=cinfo(raw),
+   dn=DEV[c.device]?c.device:pickDev(sid,cc2),dev=DEV[dn];
+  store.slots[this.i]={name:c.name||'Profile '+(this.i+1),country:raw,device:c.device||'auto',url:c.url,sid};save();
+  this.dev=dev;this.devName=dn;this.url=c.url;this.last=null;this.geo=null;this.stp='';this.set('starting');
+  L('start',{country:raw,proxyCC:pcc,device:dn,proxy:!!E.PROXY_USER});
   try{
+   this.step('بيطلب متصفح من CloudBrowser...');
    const body={Stealth:true,Browser:0,KeepOpen:900,Headless:false,Label:'bt-'+this.i+'-'+sid};
-   if(E.PROXY_USER)body.Proxy={Host:E.PROXY_HOST||'pr.oxylabs.io',Port:String(E.PROXY_PORT||7777),Username:`${E.PROXY_USER}-cc-${cc}-sessid-${sid}-sesstime-30`,Password:E.PROXY_PASS||''};
-   const r=await cb('/Browser/Open',body);this.addr=r.address;
-   this.ws=new WebSocket(/^wss?:/.test(r.address)?r.address:'wss://'+r.address);
-   await new Promise((ok,no)=>{this.ws.once('open',ok);this.ws.once('error',no)});
-   this.ws.on('message',d=>this.onMsg(d));this.ws.on('error',()=>{});
-   this.ws.on('close',()=>{if(this.st==='live'||this.st==='starting'){this.ws=null;this.set('idle','المتصفح اتقفل (انتهت المدة أو اتقفل من الخدمة)')}});
+   if(E.PROXY_USER)body.Proxy={Host:E.PROXY_HOST||'pr.oxylabs.io',Port:String(E.PROXY_PORT||7777),Username:proxyUser(pcc,sid),Password:E.PROXY_PASS||''};
+   const r=await cb('/Browser/Open',body);if(!r.address)throw new Error('CloudBrowser رجّع رد من غير address: '+JSON.stringify(r).slice(0,120));
+   this.addr=r.address;L('opened',r.address);
+   this.step('بيوصل بالمتصفح (CDP)...');
+   const url=/^wss?:/.test(r.address)?r.address:'wss://'+r.address;
+   this.ws=new WebSocket(url);
+   await new Promise((ok,no)=>{const t=setTimeout(()=>no(new Error('الاتصال بالمتصفح (CDP) اتأخر أكتر من 25 ثانية')),25000);
+    this.ws.once('open',()=>{clearTimeout(t);ok()});
+    this.ws.once('unexpected-response',(q,res)=>{clearTimeout(t);no(new Error('المتصفح رفض الاتصال (HTTP '+res.statusCode+')'))});
+    this.ws.once('error',e=>{clearTimeout(t);no(new Error('فشل الاتصال بالمتصفح: '+e.message))})});
+   this.ws.on('message',d=>this.onMsg(d));this.ws.on('error',e=>L('ws error',e.message));
+   this.ws.on('close',()=>{L('ws closed');if(this.st==='live'||this.st==='starting'){this.ws=null;this.set('idle','المتصفح اتقفل (انتهت المدة أو اتقفل من الخدمة)')}});
+   L('cdp connected');this.step('بيجهّز وضع الموبايل...');
    const v=await this.send('Browser.getVersion'),full=(v.product.split('/')[1]||'140.0.0.0'),major=full.split('.')[0];
    const{targetInfos}=await this.send('Target.getTargets');const pg=targetInfos.find(t=>t.type==='page');
    const tid=pg?pg.targetId:(await this.send('Target.createTarget',{url:'about:blank'})).targetId;
    this.sid=(await this.send('Target.attachToTarget',{targetId:tid,flatten:true})).sessionId;
-   const S=(m,p)=>this.send(m,p),soft=(m,p)=>this.send(m,p).catch(()=>{});
+   const S=(m,p)=>this.send(m,p),soft=(m,p)=>this.send(m,p).catch(e=>L('تحذير',m,e.message));
    await S('Page.enable');await S('Runtime.enable');
-   const ua=`Mozilla/5.0 (Linux; Android ${dev.av}; ${dev.m}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${major}.0.0.0 Mobile Safari/537.36`;
-   await S('Emulation.setDeviceMetricsOverride',{width:dev.w,height:dev.h,deviceScaleFactor:dev.d,mobile:true});
-   await S('Emulation.setUserAgentOverride',{userAgent:ua,acceptLanguage:info.l,platform:dev.p,userAgentMetadata:{brands:[{brand:'Chromium',version:major},{brand:'Not_A Brand',version:'24'}],fullVersion:full,platform:'Android',platformVersion:dev.av+'.0.0',architecture:'',model:dev.m,mobile:true}});
-   await soft('Emulation.setTimezoneOverride',{timezoneId:info.t});await soft('Emulation.setLocaleOverride',{locale:info.l.split(',')[0]});
-   await S('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
-   await soft('Emulation.setEmitTouchEventsForMouse',{enabled:true,configuration:'mobile'});
+   const ua=dev.and?`Mozilla/5.0 (Linux; Android ${dev.av}; ${dev.m}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${major}.0.0.0 Mobile Safari/537.36`:dev.ua;
+   const ucmd={userAgent:ua,acceptLanguage:info.l,platform:dev.p};
+   if(dev.and)ucmd.userAgentMetadata={brands:[{brand:'Chromium',version:major},{brand:'Google Chrome',version:major},{brand:'Not=A?Brand',version:'24'}],fullVersionList:[{brand:'Chromium',version:full},{brand:'Google Chrome',version:full},{brand:'Not=A?Brand',version:'24.0.0.0'}],platform:'Android',platformVersion:dev.av+'.0.0',architecture:'',model:dev.m,mobile:true,bitness:'',wow64:false};
+   await soft('Emulation.setDeviceMetricsOverride',{width:dev.w,height:dev.h,deviceScaleFactor:dev.d,mobile:true});
+   await soft('Emulation.setUserAgentOverride',ucmd);
+   await soft('Emulation.setLocaleOverride',{locale:info.l.split(',')[0]});
+   await soft('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
+   await soft('Page.setBypassCSP',{enabled:true});
+   // التوقيت: من موقع الـ IP الفعلي (أدق من الدولة) — لو فشل نرجع لتوقيت الدولة
+   this.step('بيحدد توقيت الـ IP...');let tz=info.t;const g=await this.ipGeo(L);
+   if(g){tz=g.tz;this.geo={ip:g.ip,cc:g.cc,tz:g.tz};L('IP',g.ip,g.cc,g.tz);
+    if(g.cc&&g.cc.toUpperCase()!==cc2)this.push({t:'toast',v:`⚠ الـ IP طالع من ${g.cc} مش ${cc2} — راجع كود الدولة أو البروكسي`})}
+   else L('مقدرتش أحدد توقيت الـ IP — هستخدم توقيت الدولة:',tz||'(مفيش)');
+   if(tz)await soft('Emulation.setTimezoneOverride',{timezoneId:tz});
    await S('Page.addScriptToEvaluateOnNewDocument',{source:`(()=>{const d=(o,k,v)=>{try{Object.defineProperty(o,k,{get:()=>v,configurable:true})}catch(e){}};d(navigator,'platform',${JSON.stringify(dev.p)});d(navigator,'languages',${JSON.stringify(info.l.split(','))});d(navigator,'maxTouchPoints',5);window.open=u=>{if(u)location.href=u;return window};document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[target]');if(a)a.target='_self'},true)})();`});
+   await soft('Page.bringToFront');
    await S('Page.startScreencast',{format:'jpeg',quality:72,maxWidth:Math.round(dev.w*1.5),maxHeight:Math.round(dev.h*1.5),everyNthFrame:1});
-   await S('Page.navigate',{url:norm(c.url)});this.set('live');
-  }catch(e){const m=e.message;await this.stop(true);this.set('error',m)}
+   this.step('بيفتح الصفحة...');await S('Page.navigate',{url:norm(c.url)});this.set('live');L('live');
+   setTimeout(()=>{if(this.st==='live'&&!this.last)L('⚠ لسه مجاش أي فريم شاشة بعد 10 ثواني')},10000);
+  }catch(e){const m=e.message;L('FAILED:',m);await this.stop(true);this.set('error',m)}
  }
  async stop(quiet){const a=this.addr;this.addr=null;if(this.ws){const w=this.ws;this.ws=null;try{w.close()}catch{}}
   if(a)await cb('/Browser/Close',{address:a}).catch(()=>{});this.pend.clear();if(!quiet)this.set('idle')}
@@ -114,7 +156,9 @@ app.use(express.static(path.join(__dirname,'public')));
 const slotOf=(req,res)=>{const s=slots[+req.params.i];if(!s)res.status(404).json({error:'خانة غير موجودة'});return s};
 const wrap=f=>async(req,res)=>{try{res.json(await f(req,res)||{ok:1})}catch(e){res.status(400).json({error:e.message})}};
 app.get('/api/state',(q,r)=>r.json({slots:slots.map(s=>s.meta()),scripts:store.scripts,links:store.links,saved:store.slots,countries:Object.entries(CC).map(([k,v])=>[k,v.n]),devices:Object.keys(DEV),hasKey:!!KEY}));
-app.post('/api/slot/:i/start',wrap(async(q,r)=>{const s=slotOf(q,r);if(!s)return;if(s.st==='starting')throw new Error('لسه بيفتح...');s.start(q.body||{});return{ok:1}}));
+app.post('/api/slot/:i/start',wrap(async(q,r)=>{const s=slotOf(q,r);if(!s)return;if(s.st==='starting')return{ok:1,busy:1};
+ const b=q.body||{};if(b.country&&!CC_RE.test(String(b.country).trim()))throw new Error('كود الدولة غير صالح (حرفين مثل BO، أو us_california)');
+ s.start(b).catch(e=>{console.error('[slot '+s.i+'] start crash',e);s.set('error',e.message)});return{ok:1}}));
 app.post('/api/slot/:i/stop',wrap(async(q,r)=>{const s=slotOf(q,r);if(s)await s.stop()}));
 app.post('/api/slot/:i/cookies',wrap(async(q,r)=>{const s=slotOf(q,r);if(s)return s.cookies(q.body.text)}));
 app.get('/api/slot/:i/cookies',wrap(async(q,r)=>{const s=slotOf(q,r);if(s)return{cookies:(await s.send('Network.getAllCookies')).cookies}}));
