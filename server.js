@@ -2,7 +2,8 @@
 const express=require('express'),http=require('http'),fs=require('fs'),path=require('path'),WebSocket=require('ws'),net=require('net'),tls=require('tls');
 const E=process.env,API=E.CLOUDBROWSER_API_URL||'https://production.cloudbrowser.ai/api/v1',KEY=E.CLOUDBROWSER_API_KEY,PASS=E.APP_PASSWORD;
 const DIR=E.DATA_DIR||path.join(__dirname,'data');fs.mkdirSync(DIR,{recursive:true});
-const FILE=path.join(DIR,'store.json');
+const FILE=path.join(DIR,'store.json'),INST=Math.random().toString(36).slice(2,6),BOOT=Date.now();
+process.on('uncaughtException',e=>console.error('[uncaught]',e&&e.stack||e));process.on('unhandledRejection',e=>console.error('[unhandled]',e&&e.stack||e));
 const DEF={slots:[{},{},{}],scripts:[],links:[['Facebook','https://www.facebook.com'],['Meta Business','https://business.facebook.com'],['Ads Manager','https://adsmanager.facebook.com'],['Instagram','https://www.instagram.com'],['WhatsApp Web','https://web.whatsapp.com'],['فحص الـ IP','https://ipinfo.io']]};
 let store={...DEF,...(()=>{try{return JSON.parse(fs.readFileSync(FILE,'utf8'))}catch{return{}}})()};
 const save=()=>{try{fs.writeFileSync(FILE,JSON.stringify(store,null,1))}catch(e){console.error('save',e.message)}};
@@ -126,14 +127,14 @@ class Slot{
    if(gen!==this.gen){L('اتوقف أثناء التشغيل — بقفل المتصفح');await closeBrowser(r.address,L);return}
    this.addr=r.address;L('opened',r.address);
    this.step('بيوصل بالمتصفح (CDP)...');
-   const url=/^wss?:/i.test(r.address)?r.address.replace(/^ws:\/\//i,'wss://'):'wss://'+r.address;
+   const url=/^wss?:/i.test(r.address)?r.address.replace(/^ws:\/\/(?!127\.0\.0\.1|localhost)/i,'wss://'):'wss://'+r.address;
    this.ws=new WebSocket(url,{followRedirects:true,maxRedirects:5});
    await new Promise((ok,no)=>{const t=setTimeout(()=>no(new Error('الاتصال بالمتصفح (CDP) اتأخر أكتر من 25 ثانية')),25000);
     this.ws.once('open',()=>{clearTimeout(t);ok()});
     this.ws.once('unexpected-response',(q,res)=>{clearTimeout(t);no(new Error('المتصفح رفض الاتصال (HTTP '+res.statusCode+')'))});
     this.ws.once('error',e=>{clearTimeout(t);no(new Error('فشل الاتصال بالمتصفح: '+e.message))})});
    this.ws.on('message',d=>this.onMsg(d));this.ws.on('error',e=>L('ws error',e.message));
-   this.ws.on('close',()=>{L('ws closed');if(this.st==='live'||this.st==='starting'){this.ws=null;this.set('idle','المتصفح اتقفل (انتهت المدة أو اتقفل من الخدمة)')}});
+   this.ws.on('close',()=>{L('ws closed');clearInterval(this.pollT);if(this.st==='live'||this.st==='starting'){this.ws=null;this.set('idle','المتصفح اتقفل (انتهت المدة أو اتقفل من الخدمة)')}});
    L('cdp connected');this.step('بيجهّز وضع الموبايل...');
    const v=await this.send('Browser.getVersion'),full=(v.product.split('/')[1]||'140.0.0.0'),major=full.split('.')[0];
    const{targetInfos}=await this.send('Target.getTargets');const pg=targetInfos.find(t=>t.type==='page');
@@ -159,19 +160,27 @@ class Slot{
    if(E.WEBRTC_PROTECT!=='0')await soft('Page.addScriptToEvaluateOnNewDocument',{source:RTC_JS});
    await soft('Page.bringToFront');
    await S('Page.startScreencast',{format:'jpeg',quality:72,maxWidth:Math.round(dev.w*1.5),maxHeight:Math.round(dev.h*1.5),everyNthFrame:1});
-   this.step('بيفتح الصفحة...');await S('Page.navigate',{url:norm(c.url)});this.set('live');L('live');
+   this.step('بيفتح الصفحة...');const nv=await S('Page.navigate',{url:norm(c.url)});this.set('live');L('live');
+   if(nv&&nv.errorText){L('⚠ فشل تحميل الصفحة:',nv.errorText);this.push({t:'toast',v:'⚠ فشل تحميل الصفحة: '+nv.errorText+(/PROXY|TUNNEL|CONNECTION/.test(nv.errorText)?' — غالباً البروكسي (جرّب 🧪)':'')})}
+   clearInterval(this.pollT);this.lastFrameAt=Date.now();this.pollT=setInterval(()=>this.snap(),1000);
    setTimeout(()=>{if(this.st==='live'&&!this.last)L('⚠ لسه مجاش أي فريم شاشة بعد 10 ثواني')},10000);
   }catch(e){if(gen!==this.gen){L('اتوقف بواسطة المستخدم');return}const m=e.message;L('FAILED:',m);await this.stop(true);this.set('error',m)}
  }
- async stop(quiet){this.gen++;const a=this.addr;this.addr=null;if(this.ws){const w=this.ws;this.ws=null;try{w.close()}catch{}}
+ async stop(quiet){this.gen++;clearInterval(this.pollT);const a=this.addr;this.addr=null;if(this.ws){const w=this.ws;this.ws=null;try{w.close()}catch{}}
   if(a)await closeBrowser(a,(...x)=>console.log(`[slot ${this.i}]`,...x));this.pend.clear();if(!quiet)this.set('idle')}
  onMsg(d){let m;try{m=JSON.parse(d)}catch{return}
   if(m.id){const p=this.pend.get(m.id);if(p){this.pend.delete(m.id);m.error?p.no(new Error(m.error.message)):p.ok(m.result)}return}
   const q=m.params||{};
-  if(m.method==='Page.screencastFrame'){const b=Buffer.from(q.data,'base64');this.last=b;this.clients.forEach(c=>c.readyState===1&&c.bufferedAmount<3e6&&c.send(b));this.send('Page.screencastFrameAck',{sessionId:q.sessionId}).catch(()=>{})}
+  if(m.method==='Page.screencastFrame'){this.frame(Buffer.from(q.data,'base64'));this.send('Page.screencastFrameAck',{sessionId:q.sessionId}).catch(()=>{})}
   else if(m.method==='Runtime.consoleAPICalled'){const a=q.args&&q.args[0];if(a&&typeof a.value==='string'&&a.value.startsWith('__MP__'))try{const p=JSON.parse(a.value.slice(6));this.push({t:'msg',k:p.t,id:p.id,v:p.v})}catch{}}
-  else if(m.method==='Page.frameNavigated'&&!q.frame.parentId){this.url=q.frame.url;this.push({t:'url',u:this.url})}
+  else if(m.method==='Page.frameNavigated'&&!q.frame.parentId){this.url=q.frame.url;this.push({t:'url',u:this.url});if(/^chrome-error:/.test(this.url))setTimeout(()=>this.pageErr(),500)}
   else if(m.method==='Page.javascriptDialogOpening')this.send('Page.handleJavaScriptDialog',{accept:true}).catch(()=>{})}
+ frame(b){this.last=b;this.lastFrameAt=Date.now();this.clients.forEach(c=>c.readyState===1&&c.bufferedAmount<3e6&&c.send(b))}
+ // احتياطي: لو الـ screencast سكت أكتر من ثانيتين نجيب لقطة شاشة (الصفحة الثابتة مبتبعتش فريمات)
+ async snap(){if(this.st!=='live'||!this.ws||this.snapping||Date.now()-(this.lastFrameAt||0)<2000)return;this.snapping=true;
+  try{const r=await this.send('Page.captureScreenshot',{format:'jpeg',quality:70});this.frame(Buffer.from(r.data,'base64'))}catch{}this.snapping=false}
+ async pageErr(){try{const r=await this.send('Runtime.evaluate',{expression:"(document.querySelector('.error-code')||{}).textContent||document.title",returnByValue:true}),c=String(r.result&&r.result.value||'');
+  console.log(`[slot ${this.i}] ⚠ صفحة خطأ:`,c);this.push({t:'toast',v:'⚠ الصفحة فشلت: '+c+(/PROXY|TUNNEL/.test(c)?' — البروكسي مش شغال بالدولة دي (جرّب 🧪)':'')})}catch{}}
  async shot(mw,mh){await this.send('Page.stopScreencast').catch(()=>{});await this.send('Page.startScreencast',{format:'jpeg',quality:72,maxWidth:Math.round(mw),maxHeight:Math.round(mh),everyNthFrame:1})}
  async hist(d){const h=await this.send('Page.getNavigationHistory'),e=h.entries[h.currentIndex+d];if(e)await this.send('Page.navigateToHistoryEntry',{entryId:e.id})}
  async cookies(text){const list=parseCookies(text);if(!list.length)throw new Error('مفيش كوكيز اتعرفت من النص ده');
@@ -202,7 +211,7 @@ app.use((req,res,next)=>authed(req)?next():res.set('WWW-Authenticate','Basic rea
 app.use(express.static(path.join(__dirname,'public')));
 const slotOf=(req,res)=>{const s=slots[+req.params.i];if(!s)res.status(404).json({error:'خانة غير موجودة'});return s};
 const wrap=f=>async(req,res)=>{try{res.json(await f(req,res)||{ok:1})}catch(e){res.status(400).json({error:e.message})}};
-app.get('/api/state',(q,r)=>r.json({slots:slots.map(s=>s.meta()),scripts:store.scripts,links:store.links,saved:store.slots,countries:Object.entries(CC).map(([k,v])=>[k,v.n]),devices:Object.keys(DEV),hasKey:!!KEY}));
+app.get('/api/state',(q,r)=>r.json({slots:slots.map(s=>s.meta()),scripts:store.scripts,links:store.links,saved:store.slots,countries:Object.entries(CC).map(([k,v])=>[k,v.n]),devices:Object.keys(DEV),hasKey:!!KEY,inst:INST,up:Math.round((Date.now()-BOOT)/1000)}));
 app.post('/api/slot/:i/start',wrap(async(q,r)=>{const s=slotOf(q,r);if(!s)return;if(s.st==='starting')return{ok:1,busy:1};
  const b=q.body||{};if(b.country&&!CC_RE.test(String(b.country).trim()))throw new Error('كود الدولة غير صالح (حرفين مثل BO، أو us_california)');
  s.start(b).catch(e=>{console.error('[slot '+s.i+'] start crash',e);s.set('error',e.message)});return{ok:1}}));
@@ -217,7 +226,7 @@ app.get('/api/slot/:i/cookies',wrap(async(q,r)=>{const s=slotOf(q,r);if(s)return
 app.put('/api/scripts',wrap(async q=>{if(!Array.isArray(q.body))throw new Error('صيغة غلط');store.scripts=q.body.filter(x=>x&&x.id&&x.name);save()}));
 app.put('/api/links',wrap(async q=>{if(!Array.isArray(q.body))throw new Error('صيغة غلط');store.links=q.body.filter(x=>x&&x[1]);save()}));
 const srv=http.createServer(app),wss=new WebSocket.Server({noServer:true});
-srv.on('upgrade',(req,sock,head)=>{const u=new URL(req.url,'http://x'),s=slots[+u.searchParams.get('slot')];if(u.pathname!=='/ws'||!s||!authed(req))return sock.destroy();wss.handleUpgrade(req,sock,head,ws=>{s.clients.add(ws);ws.send(JSON.stringify({t:'state',s:s.meta()}));if(s.last)ws.send(s.last);ws.on('message',d=>{try{s.cmd(JSON.parse(d))}catch{}});ws.on('close',()=>s.clients.delete(ws))})});
+srv.on('upgrade',(req,sock,head)=>{const u=new URL(req.url,'http://x'),s=slots[+u.searchParams.get('slot')];if(u.pathname!=='/ws'||!s||!authed(req))return sock.destroy();wss.handleUpgrade(req,sock,head,ws=>{ws.on('error',()=>{});s.clients.add(ws);ws.send(JSON.stringify({t:'state',s:s.meta()}));if(s.last)ws.send(s.last);ws.on('message',d=>{try{s.cmd(JSON.parse(d))}catch{}});ws.on('close',()=>s.clients.delete(ws))})});
 setInterval(()=>wss.clients.forEach(c=>c.readyState===1&&c.ping()),25000);
 // تنضيف أي متصفحات فاضلة من تشغيل سابق (بنعرفها من الـ label اللي بيبدأ بـ bt-)
 (async()=>{if(!KEY)return;try{const g=await cb('/Browser/Get',undefined,'GET');for(const b of g.browsers||g.Browsers||[]){if(String(b.label||b.Label||'').startsWith('bt-'))await closeBrowser(b.address||b.Address,(...x)=>console.log('[cleanup]',...x))}}catch(e){console.log('[cleanup] skip:',e.message)}})();

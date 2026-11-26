@@ -3,7 +3,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#090b12;--p:#111522;--p2:#171c2e;--bd:#262d45;--tx:#e8eaf2;--mu:#8b93ad;--or:#ff7a18;--bl:#3b82f6;--ok:#4ade80;--er:#ff6b6b}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 500px at 50% -10%,#16204a 0,var(--bg) 60%);color:var(--tx);font:14px Cairo,Tahoma,sans-serif;min-height:100vh}
+[hidden]{display:none!important}*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 500px at 50% -10%,#16204a 0,var(--bg) 60%);color:var(--tx);font:14px Cairo,Tahoma,sans-serif;min-height:100vh}
 header{background:#05060d;border-bottom:2px solid var(--or);box-shadow:0 8px 30px #ff7a1840}header img{display:block;width:100%;max-width:2160px;height:auto;margin:0 auto}
 .bar{display:flex;gap:8px;align-items:center;padding:10px 14px;flex-wrap:wrap}.bar .sp{flex:1}
 button,select,input,textarea{font:inherit;color:var(--tx);background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:6px 10px}
@@ -33,7 +33,7 @@ h3{margin:4px 0;color:var(--or)}.tabs{display:flex;gap:6px}.tabs button.a{backgr
 .warn-k{background:#ff6b6b22;border:1px solid var(--er);color:#ffb4b4;border-radius:10px;padding:6px 12px}
 </style></head><body>
 <header><img src="header.png" alt="براوزري تولز"></header>
-<div class="bar"><span class="chip" id="cnt">0 نشط</span><span id="nokey" class="warn-k" hidden>⚠ مفتاح CloudBrowser مش متضبط على السيرفر (CLOUDBROWSER_API_KEY)</span><span class="sp"></span>
+<div class="bar"><span class="chip" id="cnt">0 نشط</span><span id="nokey" class="warn-k" hidden>⚠ مفتاح CloudBrowser مش متضبط على السيرفر (CLOUDBROWSER_API_KEY)</span><span class="chip" id="inst" title="لو الرقم اتغير بعد ريفريش يبقى فيه أكتر من سيرفر أو السيرفر بيعيد التشغيل"></span><span class="sp"></span>
 <button onclick="dr('tools')">🧰 الأدوات</button><button onclick="dr('links')">🔗 الروابط</button><button onclick="dr('ck')">🍪 الكوكيز</button></div>
 <div id="grid"></div><aside id="dr"></aside><div id="tt"></div>
 <script>
@@ -62,7 +62,7 @@ function mkSlot(i){
   if(s.w){dev={w:s.w,h:s.h};stage.style.setProperty('--ar',s.w+'/'+s.h);stage.style.setProperty('--arn',s.w/s.h)}if(s.url&&document.activeElement!==url)url.value=s.url;
   bs.disabled=bn.disabled=st==='starting';bx.disabled=st==='idle'||st==='error'&&!s.w;bs.textContent=st==='live'?'↻ إعادة':'▶ تشغيل';
   ov.hidden=st==='live'&&cv.width>0;ov.className='ov'+(st==='error'?' er':'');
-  ov.replaceChildren(...(st==='starting'?[H('b',{text:'⏳'}),H('span',{text:'بيفتح متصفح سحابي بوضع الموبايل...'}),H('small',{text:s.stp||''})]:st==='error'?[H('b',{text:'⚠'}),H('span',{text:s.err||'حصل خطأ'})]:st==='live'?[]:[H('b',{text:'📱'}),H('span',{text:s.err||'اختار الدولة واضغط تشغيل'})]));
+  ov.replaceChildren(...(st==='starting'?[H('b',{text:'⏳'}),H('span',{text:'بيفتح متصفح سحابي بوضع الموبايل...'}),H('small',{text:s.stp||''})]:st==='error'?[H('b',{text:'⚠'}),H('span',{text:s.err||'حصل خطأ'})]:st==='live'?[H('b',{text:'⏳'}),H('span',{text:'متصل — بيستنى أول صورة من المتصفح...'})]:[H('b',{text:'📱'}),H('span',{text:s.err||'اختار الدولة واضغط تشغيل'})]));
   geo.textContent=s.geo?`🌐 ${s.geo.ip} · ${s.geo.cc} · 🕒 ${s.geo.tz}`+(s.reused===undefined?'':s.reused?' · ♻ جلسة محفوظة':' · ✨ جلسة جديدة'):'';if(st!=='live')cv.width=0;ov.hidden=st==='live'&&!!cv.width;UI.cnt()}
  function conn(){ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws?slot='+i);
   ws.onmessage=async ev=>{if(typeof ev.data==='string'){const m=JSON.parse(ev.data);
@@ -111,5 +111,5 @@ function drawer(){const d=$('#dr');d.replaceChildren(H('div',{class:'row'},H('h3
  if(tab==='ck'){const sl=H('select',{},[0,1,2].map(i=>H('option',{value:i,text:'البروفايل '+(i+1)+' — '+(UI[i].sel().nm)}))),t=H('textarea',{placeholder:'الصق الكوكيز: JSON (EditThisCookie / Playwright) أو Netscape أو Cookie header'});
   d.append(sl,t,H('button',{class:'pri',text:'تطبيق الكوكيز على البروفايل',async onclick(){const i=+sl.value;if(UI[i].st()!=='live')return toast('شغّل البروفايل الأول',1);try{const r=await api(`/slot/${i}/cookies`,'POST',{text:t.value});toast(`اتطبّق ${r.ok} كوكي`+(r.skipped?` · اتجاهل ${r.skipped} منتهي`:'')+' — اعمل تحديث للصفحة');t.value=''}catch{}}}),
    H('button',{text:'⬇ تصدير كوكيز البروفايل',async onclick(){const i=+sl.value;if(UI[i].st()!=='live')return toast('شغّل البروفايل الأول',1);try{const r=await api(`/slot/${i}/cookies`);const a=H('a',{href:URL.createObjectURL(new Blob([JSON.stringify(r.cookies,null,1)],{type:'application/json'})),download:`cookies-profile-${+i+1}.json`});a.click()}catch{}}}))}}
-(async()=>{try{Object.assign(S,await api('/state'))}catch{return}$('#nokey').hidden=S.hasKey;const g=$('#grid');[0,1,2].forEach(i=>g.append(mkSlot(i)))})();
+(async()=>{try{Object.assign(S,await api('/state'))}catch{return}$('#nokey').hidden=S.hasKey;{const u=S.up||0;$('#inst').textContent='سيرفر '+(S.inst||'?')+' · شغال من '+(u<90?u+'ث':Math.round(u/60)+'د')}const g=$('#grid');[0,1,2].forEach(i=>g.append(mkSlot(i)))})();
 </script></body></html>
