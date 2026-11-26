@@ -1,0 +1,108 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>براوزري تولز — Meta Business Dashboard</title><link rel="icon" href="header.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#090b12;--p:#111522;--p2:#171c2e;--bd:#262d45;--tx:#e8eaf2;--mu:#8b93ad;--or:#ff7a18;--bl:#3b82f6;--ok:#4ade80;--er:#ff6b6b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 500px at 50% -10%,#16204a 0,var(--bg) 60%);color:var(--tx);font:14px Cairo,Tahoma,sans-serif;min-height:100vh}
+header img{display:block;width:100%;max-height:170px;object-fit:cover;object-position:center;border-bottom:2px solid var(--or);box-shadow:0 8px 30px #ff7a1840}
+.bar{display:flex;gap:8px;align-items:center;padding:10px 14px;flex-wrap:wrap}.bar .sp{flex:1}
+button,select,input,textarea{font:inherit;color:var(--tx);background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:6px 10px}
+button{cursor:pointer;transition:.15s}button:hover{border-color:var(--ac,var(--or));background:#1d2338}button:disabled{opacity:.45;cursor:not-allowed}
+.pri{background:linear-gradient(135deg,#ffa24d,var(--or));color:#2a1200;border:0;font-weight:800}.pri:hover{filter:brightness(1.1);background:linear-gradient(135deg,#ffa24d,var(--or))}
+.dng{color:var(--er);border-color:#ff6b6b66}
+.chip{font-size:11px;font-weight:800;padding:2px 10px;border-radius:99px;background:#ffffff14;color:var(--mu)}.chip.live{background:#4ade8026;color:var(--ok)}.chip.starting{background:#ffd47926;color:#ffd479}.chip.error{background:#ff6b6b26;color:var(--er)}
+#grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0 14px 20px}
+@media(max-width:1100px){#grid{grid-template-columns:1fr}}
+.slot{background:linear-gradient(180deg,var(--p2),var(--p));border:1px solid var(--bd);border-top:3px solid var(--ac);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.row{display:flex;gap:6px;align-items:center}.row>*{min-width:0}.row .grow{flex:1}
+.nm{font-weight:800;background:transparent;border-color:transparent;width:110px}.nm:focus{border-color:var(--ac)}
+.url{direction:ltr;text-align:left}.sm{padding:5px 8px;border-radius:8px}
+.stage{position:relative;aspect-ratio:var(--ar,9/19);max-height:68vh;margin:0 auto;width:auto;max-width:100%;border-radius:22px;background:#000;border:6px solid #1b2033;box-shadow:0 0 0 1px var(--ac),0 12px 40px #0008;overflow:hidden}
+.stage canvas{width:100%;height:100%;display:block;outline:none;touch-action:none;cursor:pointer}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;text-align:center;padding:16px;color:var(--mu);background:radial-gradient(circle at 50% 30%,#1a2140,#05060b)}
+.ov b{font-size:32px;color:var(--ac)}.ov.er{color:var(--er)}.ghost{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.tools{display:flex;flex-wrap:wrap;gap:5px}.tools button{font-size:12px;padding:4px 9px}.tools button::before{content:"▶ ";color:var(--ac)}
+.con{display:none;direction:ltr;text-align:left;font:11px/1.5 Consolas,monospace;background:#05060b;border:1px solid var(--bd);border-radius:8px;padding:6px;max-height:90px;overflow:auto;white-space:pre-wrap}.con.on{display:block}
+.con .log{color:#e8eaf2}.con .info{color:#7ec8ff}.con .warn{color:#ffd479}.con .err,.con .error,.con .sys{color:var(--er)}.con .ret{color:var(--or)}.con i{color:#6b7280}
+body.hasmax .slot:not(.max){display:none}body.hasmax #grid{grid-template-columns:1fr}.slot.max .stage{max-height:80vh}
+#dr{position:fixed;top:0;bottom:0;inset-inline-start:0;width:min(440px,100%);background:var(--p);border-inline-end:1px solid var(--or);transform:translateX(-102%);transition:.25s;z-index:20;padding:14px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+#dr.on{transform:none}[dir=rtl] #dr{inset-inline-start:auto;inset-inline-end:0;transform:translateX(102%);border-inline-end:0;border-inline-start:1px solid var(--or)}[dir=rtl] #dr.on{transform:none}
+#dr textarea{width:100%;min-height:120px;direction:ltr;text-align:left;font:12px Consolas,monospace}#dr input,#dr select{width:100%}
+.item{display:flex;gap:6px;align-items:center;background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:6px 10px}.item span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+h3{margin:4px 0;color:var(--or)}.tabs{display:flex;gap:6px}.tabs button.a{background:var(--or);color:#2a1200;border:0;font-weight:800}
+#tt{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;z-index:50}.t{background:#1c2236;border:1px solid var(--bl);border-radius:10px;padding:8px 14px;box-shadow:0 8px 30px #000a}.t.e{border-color:var(--er);color:#ffb4b4}
+.warn-k{background:#ff6b6b22;border:1px solid var(--er);color:#ffb4b4;border-radius:10px;padding:6px 12px}
+</style></head><body>
+<header><img src="header.png" alt="براوزري تولز"></header>
+<div class="bar"><span class="chip" id="cnt">0 نشط</span><span id="nokey" class="warn-k" hidden>⚠ مفتاح CloudBrowser مش متضبط على السيرفر (CLOUDBROWSER_API_KEY)</span><span class="sp"></span>
+<button onclick="dr('tools')">🧰 الأدوات</button><button onclick="dr('links')">🔗 الروابط</button><button onclick="dr('ck')">🍪 الكوكيز</button></div>
+<div id="grid"></div><aside id="dr"></aside><div id="tt"></div>
+<script>
+const $=(s,r=document)=>r.querySelector(s),H=(t,a={},...k)=>{const e=document.createElement(t);for(const[x,v]of Object.entries(a))x==='class'?e.className=v:x.startsWith('on')?e[x]=v:x==='text'?e.textContent=v:e.setAttribute(x,v);k.flat().forEach(c=>c!=null&&e.append(c));return e};
+const AC=['#3b82f6','#a855f7','#ec4899'],S={slots:[],scripts:[],links:[],saved:[],countries:[],devices:[]},UI=[];
+function toast(m,e){const t=H('div',{class:'t'+(e?' e':''),text:m});$('#tt').append(t);setTimeout(()=>t.remove(),e?6000:3000)}
+async function api(p,m='GET',b){try{const r=await fetch('/api'+p,{method:m,headers:{'Content-Type':'application/json'},body:b===undefined?undefined:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'خطأ '+r.status);return j}catch(e){toast(e.message,1);throw e}}
+function mkSlot(i){
+ const sv=S.saved[i]||{},ac=AC[i];let dev={w:9,h:19},down=0,ws,st='idle';
+ const nm=H('input',{class:'nm',value:sv.name||'Profile '+(i+1)}),cs=H('select',{class:'sm',title:'الدولة (بروكسي + توقيت + لغة)'},S.countries.map(([k,n])=>H('option',{value:k,text:`${n} · ${k}`}))),
+  dv=H('select',{class:'sm',title:'الجهاز'},H('option',{value:'auto',text:'جهاز تلقائي'}),S.devices.map(d=>H('option',{value:d,text:d}))),
+  chip=H('span',{class:'chip',text:'IDLE'}),bs=H('button',{class:'pri sm',text:'▶ تشغيل'}),bx=H('button',{class:'dng sm',text:'■',title:'إيقاف',disabled:true}),bm=H('button',{class:'sm',text:'⤢',title:'تكبير'});
+ cs.value=sv.country||'EG';dv.value=sv.device||'auto';
+ const url=H('input',{class:'url grow',placeholder:'https://',value:sv.url||'https://ipinfo.io'}),
+  ln=H('select',{class:'sm',title:'روابط سريعة',onchange(){if(ln.value){send({t:'go',u:ln.value});url.value=ln.value;ln.value=''}}}),
+  nav=H('div',{class:'row'},...[['◀','back'],['▶','fwd'],['⟳','reload']].map(([x,t])=>H('button',{class:'sm',text:x,onclick:()=>send({t})})),url,H('button',{class:'sm',text:'↵',onclick:()=>send({t:'go',u:url.value})}),ln),
+  cv=H('canvas',{tabindex:0}),ov=H('div',{class:'ov'}),gi=H('input',{class:'ghost'}),stage=H('div',{class:'stage'},cv,ov,gi),
+  tl=H('div',{class:'tools'}),con=H('div',{class:'con'}),bc=H('button',{class:'sm',text:'›_',title:'الكونسول',onclick:()=>con.classList.toggle('on')}),
+  bk=H('button',{class:'sm',text:'⌨',title:'كيبورد الموبايل',onclick:()=>gi.focus()});
+ const log=(k,v)=>{const l=H('div',{class:k},H('i',{text:new Date().toLocaleTimeString('en-GB')+' '}),String(v));con.append(l);while(con.children.length>200)con.firstChild.remove();con.scrollTop=1e9};
+ const send=m=>ws&&ws.readyState===1&&ws.send(JSON.stringify(m));
+ function upd(s){st=s.st;chip.textContent=({idle:'IDLE',starting:'STARTING…',live:'● LIVE',error:'ERROR'})[st];chip.className='chip '+st;
+  if(s.w){dev={w:s.w,h:s.h};stage.style.setProperty('--ar',s.w+'/'+s.h)}if(s.url&&document.activeElement!==url)url.value=s.url;
+  bs.disabled=st==='starting';bx.disabled=st==='idle'||st==='error'&&!s.w;bs.textContent=st==='live'?'↻ إعادة':'▶ تشغيل';
+  ov.hidden=st==='live'&&cv.width>0;ov.className='ov'+(st==='error'?' er':'');
+  ov.replaceChildren(...(st==='starting'?[H('b',{text:'⏳'}),H('span',{text:'بيفتح متصفح سحابي بوضع الموبايل...'})]:st==='error'?[H('b',{text:'⚠'}),H('span',{text:s.err||'حصل خطأ'})]:st==='live'?[]:[H('b',{text:'📱'}),H('span',{text:s.err||'اختار الدولة واضغط تشغيل'})]));
+  if(st!=='live')cv.width=0;ov.hidden=st==='live'&&!!cv.width;UI.cnt()}
+ function conn(){ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws?slot='+i);
+  ws.onmessage=async ev=>{if(typeof ev.data==='string'){const m=JSON.parse(ev.data);
+    if(m.t==='state')upd(m.s);else if(m.t==='url'){if(document.activeElement!==url)url.value=m.u}else if(m.t==='toast')toast(m.v,1);
+    else if(m.t==='msg'&&m.k!=='start'&&m.k!=='done')log(m.k==='err'?'err':m.k,(m.k==='ret'?'↩ ':'')+m.v)}
+   else{try{const b=await createImageBitmap(ev.data);cv.width=b.width;cv.height=b.height;cv.getContext('2d').drawImage(b,0,0);if(st==='live')ov.hidden=true}catch{}}};
+  ws.onclose=()=>setTimeout(conn,1500)}
+ const pt=e=>{const r=cv.getBoundingClientRect();return{x:Math.round((e.clientX-r.left)/r.width*dev.w),y:Math.round((e.clientY-r.top)/r.height*dev.h)}};
+ cv.onpointerdown=e=>{cv.focus();cv.setPointerCapture(e.pointerId);down=1;send({t:'mouse',type:'mousePressed',...pt(e)})};
+ cv.onpointermove=e=>down&&send({t:'mouse',type:'mouseMoved',...pt(e)});
+ cv.onpointerup=e=>{down=0;send({t:'mouse',type:'mouseReleased',...pt(e)})};
+ cv.onwheel=e=>{e.preventDefault();send({t:'wheel',...pt(e),dx:e.deltaX,dy:e.deltaY})};
+ const mod=e=>(e.altKey?1:0)|(e.ctrlKey?2:0)|(e.metaKey?4:0)|(e.shiftKey?8:0);
+ cv.onkeydown=e=>{if((e.ctrlKey||e.metaKey)&&e.key==='v')return;e.preventDefault();const k=e.key;send({t:'key',type:'keyDown',key:k,code:e.code,text:k.length===1&&!e.ctrlKey&&!e.metaKey?k:k==='Enter'?'\r':undefined,mod:mod(e)})};
+ cv.onkeyup=e=>{e.preventDefault();send({t:'key',type:'keyUp',key:e.key,code:e.code})};
+ document.addEventListener('paste',e=>{if(document.activeElement===cv){e.preventDefault();send({t:'text',text:e.clipboardData.getData('text')})}});
+ gi.oninput=()=>{if(gi.value){send({t:'text',text:gi.value});gi.value=''}};
+ gi.onkeydown=e=>{if(['Backspace','Enter'].includes(e.key)){send({t:'key',type:'keyDown',key:e.key,code:e.key,text:e.key==='Enter'?'\r':undefined});send({t:'key',type:'keyUp',key:e.key,code:e.key})}};
+ bs.onclick=()=>api(`/slot/${i}/start`,'POST',{name:nm.value,country:cs.value,device:dv.value,url:url.value}).catch(()=>{});
+ bx.onclick=()=>api(`/slot/${i}/stop`,'POST').catch(()=>{});
+ bm.onclick=()=>{const m=el.classList.toggle('max');document.body.classList.toggle('hasmax',m);bm.textContent=m?'⤡':'⤢'};
+ const el=H('section',{class:'slot',style:`--ac:${ac}`},H('div',{class:'row'},nm,chip,H('span',{class:'grow'}),bm),H('div',{class:'row'},cs,dv,H('span',{class:'grow'}),bs,bx),nav,stage,H('div',{class:'row'},tl,H('span',{class:'grow'}),bk,bc),con);
+ UI[i]={el,st:()=>st,sel:()=>({nm:nm.value}),
+  tools(){tl.replaceChildren(...S.scripts.map(s=>H('button',{text:s.name,title:s.match||'',onclick(){if(st!=='live')return toast('شغّل البروفايل الأول',1);log('info','▶ '+s.name);send({t:'run',code:s.code,mode:s.mode,match:s.match,rid:s.id})}})))},
+  links(){ln.replaceChildren(H('option',{value:'',text:'🔗'}),...S.links.map(([n,u])=>H('option',{value:u,text:n})))}};
+ UI[i].tools();UI[i].links();conn();return el}
+UI.cnt=()=>{$('#cnt').textContent=UI.filter(u=>u.st&&u.st()==='live').length+' نشط'};
+// ── الدروار: أدوات / روابط / كوكيز
+let tab='tools',edit=null;
+function dr(t){const d=$('#dr');if(t===tab&&d.classList.contains('on'))return d.classList.remove('on');tab=t;edit=null;d.classList.add('on');drawer()}
+const uid=()=>Math.random().toString(36).slice(2,10);
+function drawer(){const d=$('#dr');d.replaceChildren(H('div',{class:'row'},H('h3',{class:'grow',text:{tools:'🧰 مكتبة الأدوات (سكربتات / بوكماركلت)',links:'🔗 الروابط السريعة',ck:'🍪 الكوكيز'}[tab]}),H('button',{class:'sm',text:'✕',onclick:()=>d.classList.remove('on')})));
+ if(tab==='tools'){const e=edit||{id:uid(),name:'',code:'',match:'',mode:'wrapped'};
+  const f={n:H('input',{placeholder:'اسم الأداة',value:e.name}),c:H('textarea',{placeholder:'الصق الكود أو javascript:... (بوكماركلت)'}),m:H('input',{placeholder:'يشتغل فقط لو الرابط فيه (مفصولة بفاصلة) — اختياري',value:e.match,style:'direction:ltr'}),
+   o:H('select',{},H('option',{value:'wrapped',text:'عادي (كونسول + await + return)'}),H('option',{value:'global',text:'بوكماركلت (نطاق عام)'}))};f.c.value=e.code;f.o.value=e.mode;
+  d.append(f.n,f.c,f.m,f.o,H('button',{class:'pri',text:edit?'حفظ التعديل':'＋ إضافة الأداة',async onclick(){if(!f.n.value.trim()||!f.c.value.trim())return toast('الاسم والكود مطلوبين',1);
+   const r={id:e.id,name:f.n.value.trim(),code:f.c.value,match:f.m.value.trim(),mode:f.o.value},l=S.scripts.filter(x=>x.id!==e.id);l.push(r);try{await api('/scripts','PUT',l)}catch{return}S.scripts=l;edit=null;UI.forEach(u=>u.tools());drawer();toast('اتحفظت ✔')}}));
+  S.scripts.forEach(s=>d.append(H('div',{class:'item'},H('span',{text:s.name}),H('button',{class:'sm',text:'✎',onclick(){edit=s;drawer()}}),H('button',{class:'sm dng',text:'🗑',async onclick(){if(!confirm('حذف '+s.name+'؟'))return;const l=S.scripts.filter(x=>x.id!==s.id);try{await api('/scripts','PUT',l)}catch{return}S.scripts=l;UI.forEach(u=>u.tools());drawer()}}))))}
+ if(tab==='links'){const t=H('textarea',{style:'min-height:220px'});t.value=S.links.map(l=>l.join(' | ')).join('\n');
+  d.append(H('small',{text:'سطر لكل رابط:  الاسم | الرابط',style:'color:var(--mu)'}),t,H('button',{class:'pri',text:'حفظ',async onclick(){const l=t.value.split('\n').map(x=>x.split('|').map(y=>y.trim())).filter(x=>x[1]).map(x=>[x[0]||x[1],/^https?:/.test(x[1])?x[1]:'https://'+x[1]]);try{await api('/links','PUT',l)}catch{return}S.links=l;UI.forEach(u=>u.links());toast('اتحفظت ✔')}}))}
+ if(tab==='ck'){const sl=H('select',{},[0,1,2].map(i=>H('option',{value:i,text:'البروفايل '+(i+1)+' — '+(UI[i].sel().nm)}))),t=H('textarea',{placeholder:'الصق الكوكيز: JSON (EditThisCookie / Playwright) أو Netscape أو Cookie header'});
+  d.append(sl,t,H('button',{class:'pri',text:'تطبيق الكوكيز على البروفايل',async onclick(){const i=+sl.value;if(UI[i].st()!=='live')return toast('شغّل البروفايل الأول',1);try{const r=await api(`/slot/${i}/cookies`,'POST',{text:t.value});toast(`اتطبّق ${r.ok} كوكي`+(r.skipped?` · اتجاهل ${r.skipped} منتهي`:'')+' — اعمل تحديث للصفحة');t.value=''}catch{}}}),
+   H('button',{text:'⬇ تصدير كوكيز البروفايل',async onclick(){const i=+sl.value;if(UI[i].st()!=='live')return toast('شغّل البروفايل الأول',1);try{const r=await api(`/slot/${i}/cookies`);const a=H('a',{href:URL.createObjectURL(new Blob([JSON.stringify(r.cookies,null,1)],{type:'application/json'})),download:`cookies-profile-${+i+1}.json`});a.click()}catch{}}}))}}
+(async()=>{try{Object.assign(S,await api('/state'))}catch{return}$('#nokey').hidden=S.hasKey;const g=$('#grid');[0,1,2].forEach(i=>g.append(mkSlot(i)))})();
+</script></body></html>
