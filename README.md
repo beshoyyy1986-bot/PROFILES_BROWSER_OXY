@@ -7,3 +7,4 @@
 3. (اختياري) Volume على /data + DATA_DIR=/data عشان الأدوات والإعدادات تفضل بعد كل نشر.
 > مش بيشتغل على Vercel لأن الأداة محتاجة WebSocket واتصال دائم (Serverless بيقطعه).
 # PROFILES_BROWSER_OXY
+# PROFILES_BROWSER_OXY
